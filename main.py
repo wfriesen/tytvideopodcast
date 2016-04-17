@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from feedgen.feed import FeedGenerator
+from datetime import datetime
 import json
 
 from voucher import voucher
@@ -27,6 +28,12 @@ def get_cache_contents(name):
             file.write(json.dumps(cache))
     return cache
 
+def trim_cache(cache, itemstokeep):
+    if len(cache) <= itemstokeep:
+        return cache
+    else
+        return sorted(d.iteritems(), key=lambda (key, value): value['timeAdded'])[:itemstokeep]
+
 def get_hour1_links():
     cache_name = 'hour1.json'
     cache = get_cache_contents(cache_name)
@@ -35,14 +42,18 @@ def get_hour1_links():
     soup = BeautifulSoup(html_doc, 'html.parser')
 
     cache_updated = False
-    for entry in soup.find_all('h2', class_='entry-title'):
+    for entry in reversed(soup.find_all('h2', class_='entry-title')):
         link = entry.find('a')
         if link.text not in cache:
             cache_updated = True
             download_link = get_download_link(link.attrs['href'])
-            cache[link.text] = download_link
+            cache[link.text] = {
+                'videoURL': download_link,
+                'timeAdded': datetime.now().isoformat()
+            }
 
     if cache_updated:
+        cache = trim_cache(cache, 10)
         with open(cache_name, 'w+') as cache_file:
             cache_file.write(json.dumps(cache))
 
@@ -64,10 +75,10 @@ def main():
     links = get_hour1_links()
     for link in links:
         fe = fg.add_entry()
-        fe.id(links[link])
+        fe.id(links[link]['videoURL'])
         fe.title(link)
         fe.description(link)
-        fe.enclosure(links[link], 0, 'video/mp4')
+        fe.enclosure(links[link]['videoURL'], 0, 'video/mp4')
 
     fg.rss_file('hour1.xml', pretty=True)
 
