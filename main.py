@@ -1,22 +1,18 @@
-import requests
+import requests, json
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-from feedgen.feed import FeedGenerator
 from datetime import datetime
-import json
+from lxml import etree
 
 from voucher import voucher
 
-hour1_url = 'https://www.tytnetwork.com/category/membership/main-show-hour-1'
+feedUrls = {
+    'MainShowHour1': 'https://www.tytnetwork.com/category/membership/main-show-hour-1/feed',
+    'MainShowHour2': 'https://www.tytnetwork.com/category/membership/main-show-hour-2/feed',
+    'PostGame': 'https://www.tytnetwork.com/category/membership/post-game/feed/'
+}
+
 headers = {'User-Agent': UserAgent().chrome}
-
-def get_download_link(url):
-    html_doc = requests.get(url, headers=headers).text
-    soup = BeautifulSoup(html_doc, 'html.parser')
-
-    data_widget_id = soup.find('div', class_='gbox-download-buttons').attrs['data-widget-id']
-
-    return 'https://widgets-cdn-p1.gbox.com/download/' + data_widget_id + '/720p?voucher=' + voucher
 
 def get_cache_contents(name):
     try:
@@ -31,56 +27,42 @@ def get_cache_contents(name):
 def trim_cache(cache, itemstokeep):
     if len(cache) <= itemstokeep:
         return cache
-    else
+    else:
         return sorted(d.iteritems(), key=lambda (key, value): value['timeAdded'])[:itemstokeep]
 
-def get_hour1_links():
-    cache_name = 'hour1.json'
-    cache = get_cache_contents(cache_name)
+def get_download_link(link, cache):
+    if link not in cache:
+        html_doc = requests.get(link, headers=headers).text
+        soup = BeautifulSoup(html_doc, 'html.parser')
 
-    html_doc = requests.get(hour1_url, headers=headers).text
-    soup = BeautifulSoup(html_doc, 'html.parser')
+        data_widget_id = soup.find('div', class_='gbox-download-buttons').attrs['data-widget-id']
+        download_link = 'https://widgets-cdn-p1.gbox.com/download/' + data_widget_id + '/720p?voucher=' + voucher
 
-    cache_updated = False
-    for entry in reversed(soup.find_all('h2', class_='entry-title')):
-        link = entry.find('a')
-        if link.text not in cache:
-            cache_updated = True
-            download_link = get_download_link(link.attrs['href'])
-            cache[link.text] = {
-                'videoURL': download_link,
-                'timeAdded': datetime.now().isoformat()
-            }
+        cache[link] = download_link
 
-    if cache_updated:
-        cache = trim_cache(cache, 10)
-        with open(cache_name, 'w+') as cache_file:
-            cache_file.write(json.dumps(cache))
-
-    return cache
-
-def setup_feedgen():
-    fg = FeedGenerator()
-    fg.load_extension('podcast')
-    fg.podcast.itunes_category('Technology', 'Podcasting')
-    fg.id('TYT Hour 1')
-    fg.title('TYT Hour 1')
-    fg.link(href=hour1_url)
-    fg.description('TYT Hour 1')
-    return fg
+    return cache[link]
 
 def main():
-    fg = setup_feedgen()
+    cache_name = 'cache.json'
+    cache = get_cache_contents(cache_name)
+    cache_count = len(cache)
 
-    links = get_hour1_links()
-    for link in links:
-        fe = fg.add_entry()
-        fe.id(links[link]['videoURL'])
-        fe.title(link)
-        fe.description(link)
-        fe.enclosure(links[link]['videoURL'], 0, 'video/mp4')
+    for name, url in feedUrls.iteritems():
+        print 'Generating feed for: ' + name
+        rss = requests.get(url, headers=headers).content
+        xml = etree.fromstring(rss)
 
-    fg.rss_file('hour1.xml', pretty=True)
+        for item in xml.xpath('/*/channel/item'):
+            link = item.xpath('./link')[0]
+            link.text = get_download_link(link.text, cache)
+
+        if cache_count != len(cache):
+            cache = trim_cache(cache, 100)
+            with open(cache_name, 'w+') as cache_file:
+                cache_file.write(json.dumps(cache))
+
+        with open('feeds/' + name + '.rss', 'w+') as output:
+            output.write(etree.tostring(xml))
 
 if __name__ == '__main__':
     main()
