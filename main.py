@@ -4,10 +4,10 @@ from fake_useragent import UserAgent
 from feedgen.feed import FeedGenerator
 from voucher import voucher
 
-def get_download_link(url):
-    ua = UserAgent()
-    headers = {'User-Agent': ua.chrome}
+hour1_url = 'https://www.tytnetwork.com/category/membership/main-show-hour-1'
+headers = {'User-Agent': UserAgent().chrome}
 
+def get_download_link(url):
     html_doc = requests.get(url, headers=headers).text
     soup = BeautifulSoup(html_doc, 'html.parser')
 
@@ -16,7 +16,7 @@ def get_download_link(url):
     return 'https://widgets-cdn-p1.gbox.com/download/' + data_widget_id + '/720p?voucher=' + voucher
 
 def get_hour1_links():
-    html_doc = open('hour1', 'r').read()
+    html_doc = requests.get(hour1_url, headers=headers).text
     soup = BeautifulSoup(html_doc, 'html.parser')
 
     for entry in soup.find_all('h2', class_='entry-title'):
@@ -30,7 +30,7 @@ def setup_feedgen():
     fg.podcast.itunes_category('Technology', 'Podcasting')
     fg.id('TYT Hour 1')
     fg.title('TYT Hour 1')
-    fg.link(href='https://www.tytnetwork.com/category/membership/main-show-hour-1/')
+    fg.link(href=hour1_url)
     fg.description('TYT Hour 1')
     return fg
 
