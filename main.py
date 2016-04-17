@@ -1,4 +1,4 @@
-import requests, json
+import requests, json, os
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from datetime import datetime
@@ -43,7 +43,8 @@ def get_download_link(link, cache):
     return cache[link]
 
 def main():
-    cache_name = 'cache.json'
+    path = os.path.dirname(os.path.abspath(__file__))
+    cache_name = os.path.join(path, 'cache.json')
     cache = get_cache_contents(cache_name)
     cache_count = len(cache)
 
@@ -61,7 +62,7 @@ def main():
             with open(cache_name, 'w+') as cache_file:
                 cache_file.write(json.dumps(cache))
 
-        with open('feeds/' + name + '.rss', 'w+') as output:
+        with open(os.path.join(path, 'feeds', name + '.rss'), 'w+') as output:
             output.write(etree.tostring(xml))
 
 if __name__ == '__main__':
