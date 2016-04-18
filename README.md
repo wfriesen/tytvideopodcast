@@ -20,6 +20,10 @@ and accept the defaults.
 Running `main.py` will generate RSS feeds for the Main Show Hour 1, 2, and Post Game, and place them in `./feeds`
 . This command can be run from cron to re-generate the feeds on a set schedule, and then point your podcast client to these files.
 
+Note that when running from cron you will need to specify the full path to both python and this script. A crontab entry to run every half hour might look like this:
+
+`0,30 * * * * /usr/local/bin/python /root/tytvideopodcast/main.py`
+
 ## Flexget
 I use [Flexget](http://flexget.com/) to automatically download these feeds. A sample config.yml is below:
 ```
