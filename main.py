@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import requests, json, os
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent

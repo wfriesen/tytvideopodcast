@@ -17,7 +17,7 @@ and accept the defaults.
 - Replace the value in `voucher.py` with your own voucher.
 
 ## Usage
-Running `python main.py` will generate RSS feeds for the Main Show Hour 1, 2, and Post Game, and place them in `./feeds`
+Running `main.py` will generate RSS feeds for the Main Show Hour 1, 2, and Post Game, and place them in `./feeds`
 . This command can be run from cron to re-generate the feeds on a set schedule, and then point your podcast client to these files.
 
 ## Flexget
