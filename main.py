@@ -15,6 +15,8 @@ feedUrls = {
 
 headers = {'User-Agent': UserAgent().chrome}
 
+cache_size = 100
+
 def get_cache_contents(name):
     try:
         with open(name, 'r') as file:
@@ -29,7 +31,10 @@ def trim_cache(cache, itemstokeep):
     if len(cache) <= itemstokeep:
         return cache
     else:
-        return sorted(d.iteritems(), key=lambda (key, value): value['timeAdded'])[:itemstokeep]
+        times = [v['timeAdded'] for k, v in cache.iteritems()]
+        timestokeep = sorted(times, reverse=True)[:itemstokeep]
+        new_cache = {k: v for k, v in cache.iteritems() if v['timeAdded'] in timestokeep}
+        return new_cache
 
 def get_download_link(link, cache):
     if link not in cache:
@@ -39,7 +44,7 @@ def get_download_link(link, cache):
         data_widget_id = soup.find('div', class_='gbox-download-buttons').attrs['data-widget-id']
         download_link = 'https://widgets-cdn-p1.gbox.com/download/' + data_widget_id + '/720p?voucher=' + voucher
 
-        cache[link] = download_link
+        cache[link] = {'link': download_link, 'timeAdded': datetime.now().isoformat()}
 
     return cache[link]
 
@@ -56,10 +61,10 @@ def main():
 
         for item in xml.xpath('/*/channel/item'):
             link = item.xpath('./link')[0]
-            link.text = get_download_link(link.text, cache)
+            link.text = get_download_link(link.text, cache)['link']
 
         if cache_count != len(cache):
-            cache = trim_cache(cache, 100)
+            cache = trim_cache(cache, cache_size)
             with open(cache_name, 'w+') as cache_file:
                 cache_file.write(json.dumps(cache))
 
