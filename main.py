@@ -10,7 +10,8 @@ from voucher import voucher
 feedUrls = {
     'MainShowHour1': 'https://www.tytnetwork.com/category/membership/main-show-hour-1/feed',
     'MainShowHour2': 'https://www.tytnetwork.com/category/membership/main-show-hour-2/feed',
-    'PostGame': 'https://www.tytnetwork.com/category/membership/post-game/feed/'
+    'PostGame': 'https://www.tytnetwork.com/category/membership/post-game/feed/',
+    'OldSchool': 'https://www.tytnetwork.com/category/membership/oldschool/feed/'
 }
 
 headers = {'User-Agent': UserAgent().chrome}
