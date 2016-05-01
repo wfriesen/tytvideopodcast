@@ -17,8 +17,14 @@ and accept the defaults.
 - Replace the value in `voucher.py` with your own voucher.
 
 ## Usage
-Running `main.py` will generate RSS feeds for the Main Show Hour 1, 2, and Post Game, and place them in `./feeds`
-. This command can be run from cron to re-generate the feeds on a set schedule, and then point your podcast client to these files.
+Running `main.py` will generate RSS feeds for several shows and place them in `./feeds`. This command can be run from cron to re-generate the feeds on a set schedule, and then point your podcast client to these files.
+
+Currently supported shows are:
+- Main Show Hour 1
+- Main Show Hour 2
+- Post Game
+- Old School
+
 
 Note that when running from cron you will need to specify the full path to both python and this script. A crontab entry to run every half hour might look like this:
 
